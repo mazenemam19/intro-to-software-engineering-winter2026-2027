@@ -1,4 +1,4 @@
-import pygame
+import pygame #type: ignore
 import random
 from game_graphics import draw_vehicle, draw_road, draw_game_over, draw_hud
 
@@ -52,23 +52,52 @@ class player(pygame.sprite.Sprite):
                 self.rect.x += self.vel
 
 
-#### TODO1: Write a "traffic" class that simulates oncoming traffic 
+#### TODO1: Write a "traffic" class that simulates oncoming traffic
 ### Hint: draw_vehicle(width, height, color, kind, facing_down=True) from game_graphics.py gives it a look
-###
-###
-###
-###
-###
-###
+class traffic(pygame.sprite.Sprite):
+    def __init__(self, kind="car", color=RED, width=60, height=100, vel=20):
+        # Define initial parameters
+        self.kind = kind
+        self.color = color
+        self.width = width
+        self.height = height
+        self.vel = vel
+        # Call the parent class (Sprite) constructor
+        pygame.sprite.Sprite.__init__(self)
+
+        # Draw the vehicle facing downwards (it drives towards the player)
+        self.image = draw_vehicle(self.width, self.height, self.color, self.kind, facing_down=True)
+
+        # Fetch the rectangle around the vehicle
+        self.rect = self.image.get_rect()
+
+        # Spawn above the screen at a random x-position
+        self.rect.x = random.randint(0, SCREEN_WIDTH - self.width)
+        self.rect.y = random.randint(-500, -self.height)
+
+    # Move the traffic from the top of the screen to the bottom
+    def move(self):
+        self.rect.y += self.vel
+
+        # Reached the bottom: back to the top and speed up
+        if self.rect.top > SCREEN_HEIGHT:
+            self.rect.x = random.randint(0, SCREEN_WIDTH - self.width)
+            self.rect.y = -self.height
+            self.vel += 1
 
 
 #### TODO2: Add two traffic subclasses "car" and "truck" with different proportions and velocities
-###
-###
-###
-###
-###
-###
+class car(traffic):
+    def __init__(self):
+        # Red, 50x100, medium speed
+        super().__init__("car", RED, 50, 100, 8)
+
+
+class truck(traffic):
+    def __init__(self):
+        # Orange, 70x120, slow
+        super().__init__("truck", ORANGE, 70, 120, 5)
+
 
 # Display 'game over' and wait: SPACE/ENTER plays again, ESC or closing the window quits
 def game_over(win, crash_point, stats):
@@ -112,14 +141,19 @@ def play(win, clock, best_score):
     # Initialize player and traffic(s)
     player1 = player()
     #TODO: here
+    car1 = car()
+    truck1 = truck()
 
     # Create sprite groups
     all_traffic = pygame.sprite.Group()
     #TODO: add traffic(s)
+    all_traffic.add(car1)
+    all_traffic.add(truck1)
 
     all_sprites = pygame.sprite.Group()
     all_sprites.add(player1)
     #TODO: add traffic(s)
+    all_sprites.add(all_traffic)
 
     # Stats of this round
     start_time = pygame.time.get_ticks()
